@@ -1,13 +1,12 @@
 import React from 'react';
 import s from './MyPosts.module.css';
 import Post from './Post/Post';
-import {addPostActionCreator, updatePostActionCreator} from "../../../redux/profile-reducer";
 import {Field, reduxForm} from "redux-form";
-import {maxLength30, maxLengthCreator, required} from "../../../utils/validators/Validators";
+import {maxLengthCreator, required} from "../../../utils/validators/Validators";
 import {Textarea} from "../../common/FormsControls/FormsControls";
 
 const MyPosts = (props) => {
-
+    console.log("RENDER YO")
     let postsElements =
         props.posts.map(p => <Post message={p.message} likesCount={p.likesCount}/>);
 
@@ -17,10 +16,10 @@ const MyPosts = (props) => {
         props.addPost(values.newPostText);
     }
 
-   /* let onPostChange = () => {
-        let text = newPostElement.current.value;
-        props.updateNewPostText(text);
-    }*/
+    /* let onPostChange = () => {
+         let text = newPostElement.current.value;
+         props.updateNewPostText(text);
+     }*/
 
     return (
         <div className={s.postsBlock}>
