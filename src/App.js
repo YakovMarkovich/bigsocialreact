@@ -3,9 +3,9 @@ import React from 'react';
 import  {Component} from 'react';
 import Navbar from "./components/navbar/Navbar";
 import {BrowserRouter, Route, withRouter} from "react-router-dom";
-import DialogsContainer from "./components/dialogs/DialogsContainer";
+/*import DialogsContainer from "./components/dialogs/DialogsContainer";*/
 import UsersContainer from "./components/users/UsersContainer";
-import ProfileContainer from "./components/profile/ProfileContainer";
+/*import ProfileContainer from "./components/profile/ProfileContainer";*/
 import HeaderContainer from "./components/header/HeaderContainer";
 import LoginPage from "./components/login/Login";
 import {connect, Provider} from "react-redux";
@@ -13,6 +13,8 @@ import {compose} from "redux";
 import {initializeApp} from "./redux/app-reducer";
 import Preloader from "./components/common/Preloader/Preloader";
 import store from "./redux/redux-store";
+import Profile from "./components/profile/Profile";
+import {withSuspense} from "./components/hoc/withSuspense";
 
 
 /*
@@ -27,6 +29,8 @@ git checkout commit-number (переключится на нужный комм�
 
 */
 
+const DialogsContainer = React.lazy(() => import('./components/dialogs/DialogsContainer'));
+const ProfileContainer = React.lazy(() => import('./components/profile/ProfileContainer'));
 
 class App extends Component {
 
@@ -50,9 +54,10 @@ class App extends Component {
                 <Navbar/>
                 <div className='app-wrapper-content'>
                     <Route path='/dialogs'
-                           render={ () => <DialogsContainer store={this.props.store}/> }/>
+                           render={ () => <React.Suspense fallback={<Preloader/>}>
+                               <DialogsContainer store={this.props.store}/></React.Suspense> }/>
                     <Route path='/profile/:userId?'
-                           render={() => <ProfileContainer/>}/>
+                           render= {withSuspense(ProfileContainer)}/>
                     <Route path='/users'
                            render={() => <UsersContainer/>}/>
                     <Route path='/login'
