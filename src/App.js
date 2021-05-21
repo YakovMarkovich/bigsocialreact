@@ -1,11 +1,9 @@
 import './App.css';
 import React from 'react';
-import  {Component} from 'react';
+import {Component} from 'react';
 import Navbar from "./components/navbar/Navbar";
-import {BrowserRouter, Route, withRouter} from "react-router-dom";
-/*import DialogsContainer from "./components/dialogs/DialogsContainer";*/
+import {BrowserRouter, HashRouter, Redirect, Route, Switch, withRouter} from "react-router-dom";
 import UsersContainer from "./components/users/UsersContainer";
-/*import ProfileContainer from "./components/profile/ProfileContainer";*/
 import HeaderContainer from "./components/header/HeaderContainer";
 import LoginPage from "./components/login/Login";
 import {connect, Provider} from "react-redux";
@@ -13,7 +11,6 @@ import {compose} from "redux";
 import {initializeApp} from "./redux/app-reducer";
 import Preloader from "./components/common/Preloader/Preloader";
 import store from "./redux/redux-store";
-import Profile from "./components/profile/Profile";
 import {withSuspense} from "./components/hoc/withSuspense";
 
 
@@ -34,18 +31,21 @@ const ProfileContainer = React.lazy(() => import('./components/profile/ProfileCo
 
 class App extends Component {
 
-    componentDidMount() {
-        /*authAPI.me()
-             .then(response => {
-                 if(response.data.resultCode===0){
-                     let {id, email, login} = response.data.data;
-                     this.props.setAuthUserData(id, email, login);
-                 }
-             })*/
-        this.props.initializeApp();
+    catchAllUnhandledErrors = (promiseRejectionEvent) => {
+        alert("some error occured");
     }
+
+    componentDidMount() {
+        this.props.initializeApp();
+        window.addEventListener("unhandledrejection", this.catchAllUnhandledErrors);
+    }
+
+    componentWillUnmount() {
+        window.removeEventListener("unhandledrejection", this.catchAllUnhandledErrors);
+    }
+
     render() {
-        if(!this.props.initialized){
+        if (!this.props.initialized) {
             return <Preloader/>
         }
         return (
@@ -53,15 +53,24 @@ class App extends Component {
                 <HeaderContainer/>
                 <Navbar/>
                 <div className='app-wrapper-content'>
-                    <Route path='/dialogs'
-                           render={ () => <React.Suspense fallback={<Preloader/>}>
-                               <DialogsContainer store={this.props.store}/></React.Suspense> }/>
-                    <Route path='/profile/:userId?'
-                           render= {withSuspense(ProfileContainer)}/>
-                    <Route path='/users'
-                           render={() => <UsersContainer/>}/>
-                    <Route path='/login'
-                           render={() => <LoginPage/>}/>
+                    <Switch>
+                        <Route exact path='/'
+                               render={() => <Redirect from="/" to="/profile" />}/>
+
+                        <Route path='/dialogs'
+                               render={() => <React.Suspense fallback={<Preloader/>}>
+                                   <DialogsContainer store={this.props.store}/></React.Suspense>}/>
+                        <Route path='/profile/:userId?'
+                               render={withSuspense(ProfileContainer)}/>
+                        <Route path='/users'
+                               render={() => <UsersContainer/>}/>
+                        <Route path='/login/facebook'
+                               render={() => <div>facebook</div>}/>
+                        <Route path='/login'
+                               render={() => <LoginPage/>}/>
+                        <Route path='*'
+                               render={() => <div>404 NOT FOUND</div>}/>
+                    </Switch>
                 </div>
             </div>
         );
@@ -72,12 +81,12 @@ const mapStateToProps = (state) => ({
     initialized: state.app.initialized
 })
 
-let AppContainer =  compose(
+let AppContainer = compose(
     withRouter,
     connect(mapStateToProps, {initializeApp}))(App);
 
 const SamuraiJSApp = (props) => {
-    return <BrowserRouter>
+    return <BrowserRouter basename={process.env.PUBLIC}>
         <Provider store={store}>
             <AppContainer/>
         </Provider>
